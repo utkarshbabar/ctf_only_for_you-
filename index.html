@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CTF Flag Verifier</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .challenge-link {
+            display: inline-block;
+            margin-top: 8px;
+            font-size: 0.9rem;
+            color: #60a5fa; /* blue-400 */
+            text-decoration: underline;
+            transition: color 0.3s;
+        }
+        .challenge-link:hover {
+            color: #93c5fd; /* blue-300 */
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white">
+
+    <div class="container mx-auto px-4 py-8 md:py-12">
+        <header class="text-center mb-10 md:mb-16">
+            <h1 class="text-4xl md:text-5xl font-bold text-cyan-400">CTF Challenge Verifier</h1>
+            <p class="text-gray-400 mt-2">Enter the flags you've found to verify them.</p>
+        </header>
+
+        <main class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- CTF Challenge 1 -->
+            <div id="ctf1" class="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700">
+                <h2 class="text-2xl font-semibold text-cyan-300 mb-2">Web Exploitation 101</h2>
+                <p class="text-gray-400 mb-4">Find the hidden comment in the page's source code.</p>
+                <!-- Replace '#' with the link to your challenge page -->
+                <a href="https://utkarshbabar.github.io/ctfinon.222/" class="challenge-link">Go to Challenge Page</a>
+                <div class="flex flex-col space-y-4 mt-4">
+                    <input type="text" id="flag1-input" placeholder="flag{...}" class="w-full bg-gray-700 text-white border border-gray-600 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                    <button onclick="verifyFlag(1)" class="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">Verify</button>
+                    <p id="result1" class="text-center h-6"></p>
+                </div>
+            </div>
+
+            <!-- CTF Challenge 2 -->
+            <div id="ctf2" class="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700">
+                <h2 class="text-2xl font-semibold text-purple-300 mb-2">Cryptography Basics</h2>
+                <p class="text-gray-400 mb-4">The message "ZUMjX0NlYXNhcl9DaXBoZXI=" is Base64 encoded. Decode it!</p>
+                <!-- No file needed for this one -->
+                <div class="flex flex-col space-y-4 mt-4">
+                    <input type="text" id="flag2-input" placeholder="flag{...}" class="w-full bg-gray-700 text-white border border-gray-600 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    <button onclick="verifyFlag(2)" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">Verify</button>
+                    <p id="result2" class="text-center h-6"></p>
+                </div>
+            </div>
+
+            <!-- CTF Challenge 3 -->
+            <div id="ctf3" class="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700">
+                <h2 class="text-2xl font-semibold text-green-300 mb-2">Reverse Engineering</h2>
+                <p class="text-gray-400 mb-4">I've set a simple password in a script. Can you find it?</p>
+                 <!-- Replace '#' with the link to your script file -->
+                <a href="#" class="challenge-link">Download Script</a>
+                <div class="flex flex-col space-y-4 mt-4">
+                    <input type="text" id="flag3-input" placeholder="flag{...}" class="w-full bg-gray-700 text-white border border-gray-600 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
+                    <button onclick="verifyFlag(3)" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">Verify</button>
+                    <p id="result3" class="text-center h-6"></p>
+                </div>
+            </div>
+
+            <!-- CTF Challenge 4 -->
+            <div id="ctf4" class="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700">
+                <h2 class="text-2xl font-semibold text-yellow-300 mb-2">Forensics Fun</h2>
+                <p class="text-gray-400 mb-4">What is the name of the tool hidden in the image metadata?</p>
+                 <!-- Replace '#' with the link to your image file -->
+                <a href="#" class="challenge-link">Download Image</a>
+                <div class="flex flex-col space-y-4 mt-4">
+                    <input type="text" id="flag4-input" placeholder="flag{...}" class="w-full bg-gray-700 text-white border border-gray-600 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500">
+                    <button onclick="verifyFlag(4)" class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">Verify</button>
+                    <p id="result4" class="text-center h-6"></p>
+                </div>
+            </div>
+             <!-- CTF Challenge 5 -->
+            <div id="ctf5" class="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700">
+                <h2 class="text-2xl font-semibold text-red-300 mb-2">Network Traffic</h2>
+                <p class="text-gray-400 mb-4">Analyze the pcap file. What was the secret message sent over HTTP?</p>
+                 <!-- Replace '#' with the link to your pcap file -->
+                <a href="#" class="challenge-link">Download PCAP File</a>
+                <div class="flex flex-col space-y-4 mt-4">
+                    <input type="text" id="flag5-input" placeholder="flag{...}" class="w-full bg-gray-700 text-white border border-gray-600 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500">
+                    <button onclick="verifyFlag(5)" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">Verify</button>
+                    <p id="result5" class="text-center h-6"></p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // --- Correct Flags ---
+        // You can change these flags to whatever you want.
+        const correctFlags = {
+            1: "bhrCTF{you_are_lucky}",
+            2: "flag{Not_Ceasar_Cipher}",
+            3: "flag{r3v3rs3_3ng1n33r_is_fun}",
+            4: "flag{exiftool_for_the_win}",
+            5: "flag{http_is_not_secure}"
+        };
+
+        /**
+         * Verifies the flag entered by the user for a specific CTF challenge.
+         * @param {number} ctfNumber - The number of the CTF challenge (1, 2, 3, etc.).
+         */
+        function verifyFlag(ctfNumber) {
+            const inputElement = document.getElementById(`flag${ctfNumber}-input`);
+            const resultElement = document.getElementById(`result${ctfNumber}`);
+            const enteredFlag = inputElement.value.trim();
+
+            if (!enteredFlag) {
+                resultElement.textContent = "Please enter a flag.";
+                resultElement.className = 'text-center h-6 text-yellow-400';
+                return;
+            }
+
+            if (enteredFlag === correctFlags[ctfNumber]) {
+                resultElement.textContent = "Correct!";
+                resultElement.className = 'text-center h-6 text-green-400 font-bold';
+                inputElement.classList.remove('border-red-500');
+                inputElement.classList.add('border-green-500');
+            } else {
+                resultElement.textContent = "Wrong, try again!";
+                resultElement.className = 'text-center h-6 text-red-400 font-bold';
+                inputElement.classList.remove('border-green-500');
+                inputElement.classList.add('border-red-500');
+            }
+        }
+    </script>
+
+</body>
+</html>
