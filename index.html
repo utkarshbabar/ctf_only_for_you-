@@ -3,103 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CTF Flag Verifier</title>
+    <title>CTF Challenge Platform</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            background-color: #f6f8fa;
         }
         .challenge-link {
-            display: inline-block;
-            margin-top: 8px;
-            font-size: 0.9rem;
-            color: #60a5fa; /* blue-400 */
-            text-decoration: underline;
-            transition: color 0.3s;
+            color: #0366d6;
+            transition: color 0.2s ease-in-out;
         }
         .challenge-link:hover {
-            color: #93c5fd; /* blue-300 */
+            color: #005cc5;
+            text-decoration: underline;
+        }
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+        /* Modal Animation Styles */
+        .modal-overlay {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .modal-content {
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+        }
+        .input-focus:focus {
+            box-shadow: 0 0 0 3px rgba(3, 102, 214, 0.3);
+            border-color: #0366d6;
         }
     </style>
 </head>
-<body class="bg-gray-900 text-white">
+<body class="text-gray-800">
+    <canvas id="confetti-canvas"></canvas>
 
-    <div class="container mx-auto px-4 py-8 md:py-12">
+    <!-- User Details Modal -->
+    <div id="user-modal-overlay" class="fixed inset-0 bg-gray-800 bg-opacity-60 flex items-center justify-center z-50 p-4">
+        <div id="user-modal-content" class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md border border-gray-200 transform -translate-y-12 opacity-0">
+            <h2 class="text-3xl font-bold text-center text-gray-900 mb-2">Welcome, Challenger!</h2>
+            <p class="text-center text-gray-500 mb-8">Enter your details to begin the challenge.</p>
+            <form id="user-details-form" class="space-y-4">
+                <div>
+                    <label for="name" class="block text-gray-600 mb-1 font-medium">Name</label>
+                    <input type="text" id="name" name="name" required class="w-full bg-gray-100 text-gray-800 border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none input-focus transition">
+                </div>
+                 <div>
+                    <label for="organization" class="block text-gray-600 mb-1 font-medium">College / Company</label>
+                    <input type="text" id="organization" name="organization" class="w-full bg-gray-100 text-gray-800 border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none input-focus transition">
+                </div>
+                 <div>
+                    <label for="gmail" class="block text-gray-600 mb-1 font-medium">Gmail ID</label>
+                    <input type="email" id="gmail" name="gmail" required class="w-full bg-gray-100 text-gray-800 border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none input-focus transition" pattern="[a-z0-9._%+-]+@gmail.com$" title="Please enter a valid Gmail address.">
+                </div>
+                <div>
+                    <label for="age" class="block text-gray-600 mb-1 font-medium">Age</label>
+                    <input type="number" id="age" name="age" required class="w-full bg-gray-100 text-gray-800 border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none input-focus transition">
+                </div>
+                <button type="submit" id="submit-details-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 text-lg shadow-sm hover:shadow-md mt-6">
+                    Start Challenge
+                </button>
+            </form>
+        </div>
+    </div>
+
+
+    <div id="main-content" class="container mx-auto px-4 py-8 md:py-12 hidden">
         <header class="text-center mb-10 md:mb-16">
-            <h1 class="text-4xl md:text-5xl font-bold text-cyan-400">CTF Challenge Verifier</h1>
-            <p class="text-gray-400 mt-2">Enter the flags you've found to verify them.</p>
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900">CTF Challenge Platform</h1>
+            <p class="text-gray-500 mt-3 text-lg">Find all the flags before the timer runs out!</p>
+            <div id="timer-container" class="mt-8 bg-white border border-gray-200 rounded-xl p-4 max-w-sm mx-auto shadow-sm">
+                <p class="text-lg font-medium text-gray-500">Time Remaining</p>
+                <p id="timer" class="text-4xl font-bold text-blue-600">60:00</p>
+            </div>
         </header>
 
         <main class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <!-- CTF Challenge 1 -->
-            <div id="ctf1" class="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700">
-                <h2 class="text-2xl font-semibold text-cyan-300 mb-2">Web Exploitation 101</h2>
-                <p class="text-gray-400 mb-4">Find the hidden comment in the page's source code.</p>
-                <!-- Replace '#' with the link to your challenge page -->
-                <a href="https://utkarshbabar.github.io/ctfinon.222/" class="challenge-link">Go to Challenge Page</a>
-                <div class="flex flex-col space-y-4 mt-4">
-                    <input type="text" id="flag1-input" placeholder="bhrCTF{...}" class="w-full bg-gray-700 text-white border border-gray-600 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500">
-                    <button onclick="verifyFlag(1)" class="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">Verify</button>
-                    <p id="result1" class="text-center h-6"></p>
-                </div>
-            </div>
-
-            <!-- CTF Challenge 2 -->
-            <div id="ctf2" class="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700">
-                <h2 class="text-2xl font-semibold text-purple-300 mb-2">Cryptography Basics</h2>
-                <p class="text-gray-400 mb-4">The message "YmhyQ1RGe2lfbG92ZV95b3VfMTIyMn0=" is Base64 encoded. Decode it!</p>
-                <!-- No file needed for this one -->
-                <div class="flex flex-col space-y-4 mt-4">
-                    <input type="text" id="flag2-input" placeholder="bhrCTF{...}" class="w-full bg-gray-700 text-white border border-gray-600 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                    <button onclick="verifyFlag(2)" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">Verify</button>
-                    <p id="result2" class="text-center h-6"></p>
-                </div>
-            </div>
-
-            <!-- CTF Challenge 3 -->
-            <div id="ctf3" class="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700">
-                <h2 class="text-2xl font-semibold text-green-300 mb-2">Reverse Engineering</h2>
-                <p class="text-gray-400 mb-4">I've set a simple password in a script. Can you find it?</p>
-                 <!-- Replace '#' with the link to your script file -->
-                <a href="#" class="challenge-link">Download Script</a>
-                <div class="flex flex-col space-y-4 mt-4">
-                    <input type="text" id="flag3-input" placeholder="bhrCTF{...}" class="w-full bg-gray-700 text-white border border-gray-600 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
-                    <button onclick="verifyFlag(3)" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">Verify</button>
-                    <p id="result3" class="text-center h-6"></p>
-                </div>
-            </div>
-
-            <!-- CTF Challenge 4 -->
-            <div id="ctf4" class="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700">
-                <h2 class="text-2xl font-semibold text-yellow-300 mb-2">Forensics Fun</h2>
-                <p class="text-gray-400 mb-4">What is the name of the tool hidden in the image metadata?</p>
-                 <!-- Replace '#' with the link to your image file -->
-                <a href="d.png" class="challenge-link">Download Image</a>
-                <div class="flex flex-col space-y-4 mt-4">
-                    <input type="text" id="flag4-input" placeholder="bhrCTF{...}" class="w-full bg-gray-700 text-white border border-gray-600 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500">
-                    <button onclick="verifyFlag(4)" class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">Verify</button>
-                    <p id="result4" class="text-center h-6"></p>
-                </div>
-            </div>
-             <!-- CTF Challenge 5 -->
-            <div id="ctf5" class="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700">
-                <h2 class="text-2xl font-semibold text-red-300 mb-2">Network Traffic</h2>
-                <p class="text-gray-400 mb-4">Analyze the pcap file. What was the secret message sent over HTTP?</p>
-                 <!-- Replace '#' with the link to your pcap file -->
-                <a href="#" class="challenge-link">Download PCAP File</a>
-                <div class="flex flex-col space-y-4 mt-4">
-                    <input type="text" id="flag5-input" placeholder="bhrCTF{...}" class="w-full bg-gray-700 text-white border border-gray-600 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-red-500">
-                    <button onclick="verifyFlag(5)" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">Verify</button>
-                    <p id="result5" class="text-center h-6"></p>
-                </div>
-            </div>
+            <!-- CTF Challenge Cards are dynamically generated -->
         </main>
+
+        <!-- Final Submit Button -->
+        <div class="text-center mt-12">
+            <button onclick="submitAllFlags()" class="bg-gray-800 hover:bg-gray-900 text-white font-bold py-3 px-8 rounded-lg transition-all duration-300 text-lg shadow-sm hover:shadow-md">Submit All Flags</button>
+            <p id="finalResult" class="text-center h-6 mt-4 text-lg font-bold"></p>
+        </div>
     </div>
 
     <script>
-        // --- Correct Flags ---
-        // You can change these flags to whatever you want.
+        // --- Configuration ---
+        const googleAppScriptUrl = 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec';
+        
         const correctFlags = {
             1: "bhrCTF{you_are_lucky}",
             2: "bhrCTF{i_love_you_1222}",
@@ -108,10 +110,77 @@
             5: "flag{http_is_not_secure}"
         };
 
-        /**
-         * Verifies the flag entered by the user for a specific CTF challenge.
-         * @param {number} ctfNumber - The number of the CTF challenge (1, 2, 3, etc.).
-         */
+        const hints = {
+            1: "Right-click on the challenge page and select 'View Page Source'. The flag is inside an HTML comment.",
+            2: "This is a very common text encoding format. Search for a 'Base64 decoder' online.",
+            3: "The 'script' mentioned is the JavaScript within this very page. Look for the 'correctFlags' object.",
+            4: "Image files can store hidden data called metadata. Use an online EXIF viewer or a tool like 'exiftool'.",
+            5: "Open the .pcap file in Wireshark and apply 'http' as a display filter to see the unencrypted traffic."
+        };
+
+        const challenges = [
+            { id: 1, title: "Web Exploitation 101", description: "Find the hidden comment in the page's source code.", link: "https://utkarshbabar.github.io/ctfinon.222/", color: "blue" },
+            { id: 2, title: "Cryptography Basics", description: 'The message "YmhyQ1RGe2lfbG92ZV95b3VfMTIyMn0=" is Base64 encoded. Decode it!', link: null, color: "purple" },
+            { id: 3, title: "Reverse Engineering", description: "I've set a simple password in a script. Can you find it?", link: "#", linkText: "Download Script", color: "green" },
+            { id: 4, title: "Forensics Fun", description: "What is the name of the tool hidden in the image metadata?", link: "d.png", linkText: "Download Image", color: "yellow" },
+            { id: 5, title: "Network Traffic", description: "Analyze the pcap file. What was the secret message sent over HTTP?", link: "#", linkText: "Download PCAP", color: "red" },
+        ];
+
+        const TOTAL_TIME = 3600; // 1 hour in seconds
+        let timerInterval;
+
+        // --- Core Functions ---
+        window.addEventListener('DOMContentLoaded', () => {
+            generateChallengeCards();
+
+            if (localStorage.getItem('ctfUserSubmitted')) {
+                showMainContent();
+            } else {
+                showUserDetailsModal();
+            }
+            
+            document.getElementById('user-details-form').addEventListener('submit', handleUserDetailsSubmit);
+
+            // Add event listeners to save user details form data on input
+            document.getElementById('name').addEventListener('input', saveUserDetails);
+            document.getElementById('organization').addEventListener('input', saveUserDetails);
+            document.getElementById('gmail').addEventListener('input', saveUserDetails);
+            document.getElementById('age').addEventListener('input', saveUserDetails);
+
+            Object.keys(correctFlags).forEach(num => {
+                const inputElement = document.getElementById(`flag${num}-input`);
+                if(inputElement) inputElement.addEventListener('input', () => saveFlags());
+            });
+        });
+        
+        async function handleUserDetailsSubmit(event) {
+            event.preventDefault();
+            const form = event.target;
+            const submitButton = document.getElementById('submit-details-btn');
+            submitButton.disabled = true;
+            submitButton.textContent = 'Starting...';
+
+            const formData = new FormData(form);
+            
+            try {
+                const response = await fetch(googleAppScriptUrl, {
+                    method: 'POST',
+                    body: formData
+                });
+                if (!response.ok) {
+                   console.error('Google Sheets API response was not ok.');
+                }
+                localStorage.setItem('ctfUserSubmitted', 'true');
+                localStorage.removeItem('ctfUserDetails'); // Clear details after submission
+                hideUserDetailsModal();
+            } catch (error) {
+                console.error('Error submitting to Google Sheets:', error);
+                localStorage.setItem('ctfUserSubmitted', 'true');
+                localStorage.removeItem('ctfUserDetails'); // Clear details after submission
+                hideUserDetailsModal();
+            }
+        }
+
         function verifyFlag(ctfNumber) {
             const inputElement = document.getElementById(`flag${ctfNumber}-input`);
             const resultElement = document.getElementById(`result${ctfNumber}`);
@@ -119,23 +188,276 @@
 
             if (!enteredFlag) {
                 resultElement.textContent = "Please enter a flag.";
-                resultElement.className = 'text-center h-6 text-yellow-400';
+                resultElement.className = 'text-center h-6 font-medium text-yellow-600';
                 return;
             }
 
             if (enteredFlag === correctFlags[ctfNumber]) {
                 resultElement.textContent = "Correct!";
-                resultElement.className = 'text-center h-6 text-green-400 font-bold';
+                resultElement.className = 'text-center h-6 font-bold text-green-600';
                 inputElement.classList.remove('border-red-500');
                 inputElement.classList.add('border-green-500');
             } else {
                 resultElement.textContent = "Wrong, try again!";
-                resultElement.className = 'text-center h-6 text-red-400 font-bold';
-                inputElement.classList.remove('border-green-500');
+                resultElement.className = 'text-center h-6 font-bold text-red-600';
+                inputElement.classList.remove('border-red-500');
                 inputElement.classList.add('border-red-500');
             }
         }
+
+        function showHint(ctfNumber) {
+            const hintBox = document.getElementById(`hint${ctfNumber}-box`);
+            const hintP = hintBox.querySelector('p');
+            if (hintBox.classList.contains('hidden')) {
+                hintP.textContent = hints[ctfNumber];
+                hintBox.classList.remove('hidden');
+            } else {
+                hintBox.classList.add('hidden');
+            }
+        }
+
+        function submitAllFlags() {
+            clearInterval(timerInterval);
+            let correctCount = 0;
+            const totalFlags = Object.keys(correctFlags).length;
+
+            for (let i = 1; i <= totalFlags; i++) {
+                verifyFlag(i);
+                const inputElement = document.getElementById(`flag${i}-input`);
+                if (inputElement.value.trim() === correctFlags[i]) {
+                    correctCount++;
+                }
+            }
+            
+            const finalResultElement = document.getElementById('finalResult');
+            if (correctCount === totalFlags) {
+                finalResultElement.textContent = `🎉 Congratulations! You found all ${totalFlags} flags! 🎉`;
+                finalResultElement.className = 'text-center h-auto mt-4 text-lg font-bold text-green-600';
+                showCongratulationsAnimation();
+            } else {
+                finalResultElement.textContent = `You found ${correctCount} out of ${totalFlags} flags. Keep trying!`;
+                finalResultElement.className = 'text-center h-auto mt-4 text-lg font-bold text-yellow-600';
+            }
+            clearState();
+        }
+
+        // --- Timer and State Management ---
+        function startTimer() {
+            let endTime = localStorage.getItem('ctfEndTime');
+            if (!endTime) {
+                endTime = Date.now() + TOTAL_TIME * 1000;
+                localStorage.setItem('ctfEndTime', endTime);
+            }
+
+            timerInterval = setInterval(() => {
+                const remaining = Math.round((endTime - Date.now()) / 1000);
+                if (remaining >= 0) {
+                    updateTimerDisplay(remaining);
+                } else {
+                    clearInterval(timerInterval);
+                    document.getElementById('timer').textContent = "Time's Up!";
+                    submitAllFlags();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            document.getElementById('timer').textContent = 
+                `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+        }
+
+        function saveFlags() {
+            const flags = {};
+            Object.keys(correctFlags).forEach(num => {
+                flags[num] = document.getElementById(`flag${num}-input`).value;
+            });
+            localStorage.setItem('ctfFlags', JSON.stringify(flags));
+        }
+
+        function loadFlags() {
+            const savedFlags = JSON.parse(localStorage.getItem('ctfFlags'));
+            if (savedFlags) {
+                Object.keys(savedFlags).forEach(num => {
+                    const inputElement = document.getElementById(`flag${num}-input`);
+                    if (inputElement) {
+                        inputElement.value = savedFlags[num] || '';
+                    }
+                });
+            }
+        }
+        
+        function saveUserDetails() {
+            const userDetails = {
+                name: document.getElementById('name').value,
+                organization: document.getElementById('organization').value,
+                gmail: document.getElementById('gmail').value,
+                age: document.getElementById('age').value
+            };
+            localStorage.setItem('ctfUserDetails', JSON.stringify(userDetails));
+        }
+
+        function loadUserDetails() {
+            const savedDetails = JSON.parse(localStorage.getItem('ctfUserDetails'));
+            if (savedDetails) {
+                document.getElementById('name').value = savedDetails.name || '';
+                document.getElementById('organization').value = savedDetails.organization || '';
+                document.getElementById('gmail').value = savedDetails.gmail || '';
+                document.getElementById('age').value = savedDetails.age || '';
+            }
+        }
+
+        function clearState() {
+            localStorage.removeItem('ctfFlags');
+            localStorage.removeItem('ctfEndTime');
+            localStorage.removeItem('ctfUserSubmitted');
+            localStorage.removeItem('ctfUserDetails');
+        }
+
+        // --- UI and Animations ---
+        function generateChallengeCards() {
+            const mainGrid = document.querySelector('main');
+            mainGrid.innerHTML = ''; // Clear existing cards
+            challenges.forEach(c => {
+                const cardHTML = `
+                    <div id="ctf${c.id}" class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex flex-col hover:shadow-md transition-shadow duration-300">
+                        <h2 class="text-2xl font-semibold text-gray-900 mb-2">${c.title}</h2>
+                        <p class="text-gray-500 mb-4 flex-grow">${c.description}</p>
+                        ${c.link ? `<a href="${c.link}" class="challenge-link font-medium mb-4" ${c.id === 1 ? 'target="_blank"' : ''}>${c.linkText || 'Go to Challenge Page'}</a>` : ''}
+                        <div class="flex flex-col space-y-2 mt-auto">
+                            <input type="text" id="flag${c.id}-input" placeholder="bhrCTF{...}" class="w-full bg-gray-100 text-gray-800 border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none input-focus transition">
+                            <div class="flex space-x-2">
+                                <button onclick="verifyFlag(${c.id})" class="flex-1 bg-${c.color}-600 hover:bg-${c.color}-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Verify</button>
+                                <button onclick="showHint(${c.id})" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg transition duration-300">Hint</button>
+                            </div>
+                            <p id="result${c.id}" class="text-center h-6 font-medium"></p>
+                            <div id="hint${c.id}-box" class="hidden bg-gray-100 p-3 rounded-lg mt-2 border border-gray-200">
+                                <p class="text-sm text-gray-600"></p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                mainGrid.innerHTML += cardHTML;
+            });
+        }
+
+        function showUserDetailsModal() {
+            const overlay = document.getElementById('user-modal-overlay');
+            const content = document.getElementById('user-modal-content');
+            loadUserDetails(); // Load any saved details into the form
+            overlay.classList.remove('hidden');
+            requestAnimationFrame(() => {
+                content.classList.remove('-translate-y-12', 'opacity-0');
+                content.classList.add('translate-y-0', 'opacity-100');
+            });
+        }
+
+        function hideUserDetailsModal() {
+            const overlay = document.getElementById('user-modal-overlay');
+            const content = document.getElementById('user-modal-content');
+            content.classList.add('-translate-y-12', 'opacity-0');
+            content.classList.remove('translate-y-0', 'opacity-100');
+            
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                showMainContent();
+            }, 300);
+        }
+
+        function showMainContent() {
+            document.getElementById('main-content').classList.remove('hidden');
+            loadFlags();
+            startTimer();
+        }
+
+        function showCongratulationsAnimation() {
+            const myCanvas = document.getElementById('confetti-canvas');
+            const myConfetti = confetti.create(myCanvas, {
+                resize: true,
+                useWorker: true
+            });
+            
+            const duration = 5 * 1000;
+            const end = Date.now() + duration;
+
+            (function frame() {
+                myConfetti({
+                    particleCount: 2,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 },
+                    colors: ['#0366d6', '#2ea44f', '#d73a49', '#ffea7f']
+                });
+                myConfetti({
+                    particleCount: 2,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 },
+                    colors: ['#0366d6', '#2ea44f', '#d73a49', '#ffea7f']
+                });
+
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            }());
+        }
     </script>
+    
+    <!-- 
+    INSTRUCTIONS FOR GOOGLE SHEETS INTEGRATION:
+
+    To save user details to a Google Sheet, you need to create a Google Apps Script.
+    Follow these steps:
+
+    1. CREATE A GOOGLE SHEET:
+       - Go to sheets.google.com and create a new blank spreadsheet.
+       - Name the columns in the first row: "Timestamp", "Name", "College/Company", "Gmail", "Age".
+
+    2. CREATE A GOOGLE APPS SCRIPT:
+       - In your new sheet, go to "Extensions" > "Apps Script".
+       - Delete any existing code in the `Code.gs` file.
+       - Copy and paste the following code into the `Code.gs` file:
+
+       --------------------------------------------------------------------------------
+       function doPost(e) {
+         // IMPORTANT: Link this to the Google Sheet you created.
+         const sheet = SpreadsheetApp.openById("YOUR_SHEET_ID_HERE").getSheetByName("Sheet1");
+         
+         const name = e.parameter.name;
+         const organization = e.parameter.organization;
+         const gmail = e.parameter.gmail;
+         const age = e.parameter.age;
+         const timestamp = new Date();
+         
+         sheet.appendRow([timestamp, name, organization, gmail, age]);
+         
+         return ContentService.createTextOutput(JSON.stringify({ "result": "success" }))
+           .setMimeType(ContentService.MimeType.JSON);
+       }
+       --------------------------------------------------------------------------------
+
+    3. GET YOUR SHEET ID:
+       - Look at the URL of your Google Sheet. It will be something like:
+         `https://docs.google.com/spreadsheets/d/1aBcDeFgHiJkLmNoPqRsTuVwXyZ_12345/edit`
+       - The long string in the middle (`1aBcDeFgHiJkLmNoPqRsTuVwXyZ_12345`) is your Sheet ID.
+       - Paste this ID into the `YOUR_SHEET_ID_HERE` placeholder in your Apps Script code.
+
+    4. DEPLOY THE SCRIPT AS A WEB APP:
+       - In the Apps Script editor, click the "Deploy" button (top right).
+       - Select "New deployment".
+       - For "Select type", choose "Web app".
+       - In the "New deployment" dialog:
+         - Description: "CTF User Details"
+         - Execute as: "Me"
+         - Who has access: "Anyone" (This is important for the form to work)
+       - Click "Deploy".
+       - Click "Authorize access" and follow the prompts to allow the script to access your sheets. You might see a "Google hasn't verified this app" warning. Click "Advanced" and then "Go to (unsafe)". This is safe because you created the script.
+       - After deploying, copy the "Web app URL".
+
+    5. UPDATE THE HTML:
+       - Paste the copied "Web app URL" into the `googleAppScriptUrl` constant at the top of the <script> tag in this HTML file.
+    -->
 
 </body>
 </html>
