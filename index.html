@@ -119,11 +119,11 @@
         };
 
         const challenges = [
-            { id: 1, title: "Web Exploitation 101", description: "Find the hidden comment in the page's source code.", link: "https://utkarshbabar.github.io/ctfinon.222/", color: "blue" },
-            { id: 2, title: "Cryptography Basics", description: 'The message "YmhyQ1RGe2lfbG92ZV95b3VfMTIyMn0=" is Base64 encoded. Decode it!', link: null, color: "purple" },
-            { id: 3, title: "Reverse Engineering", description: "I've set a simple password in a script. Can you find it?", link: "#", linkText: "Download Script", color: "green" },
-            { id: 4, title: "Forensics Fun", description: "What is the name of the tool hidden in the image metadata?", link: "d.png", linkText: "Download Image", color: "yellow" },
-            { id: 5, title: "Network Traffic", description: "Analyze the pcap file. What was the secret message sent over HTTP?", link: "#", linkText: "Download PCAP", color: "red" },
+            { id: 1, title: "Web Exploitation 101", description: "Find the hidden comment in the page's source code.", link: "https://utkarshbabar.github.io/ctfinon.222/", color: "blue", downloadable: false },
+            { id: 2, title: "Cryptography Basics", description: 'The message "YmhyQ1RGe2lfbG92ZV95b3VfMTIyMn0=" is Base64 encoded. Decode it!', link: null, color: "purple", downloadable: false },
+            { id: 3, title: "Reverse Engineering", description: "I've set a simple password in a script. Can you find it?", link: "#", linkText: "Download Script", color: "green", downloadable: true },
+            { id: 4, title: "Forensics Fun", description: "What is the name of the tool hidden in the image metadata?", link: "d.png", linkText: "Download Image", color: "yellow", downloadable: true },
+            { id: 5, title: "Network Traffic", description: "Analyze the pcap file. What was the secret message sent over HTTP?", link: "#", linkText: "Download PCAP", color: "red", downloadable: true },
         ];
 
         const TOTAL_TIME = 3600; // 1 hour in seconds
@@ -324,7 +324,7 @@
                     <div id="ctf${c.id}" class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex flex-col hover:shadow-md transition-shadow duration-300">
                         <h2 class="text-2xl font-semibold text-gray-900 mb-2">${c.title}</h2>
                         <p class="text-gray-500 mb-4 flex-grow">${c.description}</p>
-                        ${c.link ? `<a href="${c.link}" class="challenge-link font-medium mb-4" ${c.id === 1 ? 'target="_blank"' : ''}>${c.linkText || 'Go to Challenge Page'}</a>` : ''}
+                        ${c.link ? `<a href="${c.link}" class="challenge-link font-medium mb-4" ${c.id === 1 ? 'target="_blank"' : ''} ${c.downloadable ? 'download' : ''}>${c.linkText || 'Go to Challenge Page'}</a>` : ''}
                         <div class="flex flex-col space-y-2 mt-auto">
                             <input type="text" id="flag${c.id}-input" placeholder="bhrCTF{...}" class="w-full bg-gray-100 text-gray-800 border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none input-focus transition">
                             <div class="flex space-x-2">
