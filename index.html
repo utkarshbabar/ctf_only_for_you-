@@ -159,6 +159,26 @@
             transform: scale(1.2);
             fill: #60a5fa;
         }
+        .filter-btn {
+            background-color: rgba(31, 41, 55, 0.5);
+            border: 1px solid #4b5563;
+            transition: all 0.2s;
+        }
+        .filter-btn:hover {
+            background-color: #374151;
+            border-color: #6b7280;
+        }
+        .filter-btn.active {
+            background-color: #3b82f6;
+            border-color: #3b82f6;
+            color: white;
+            box-shadow: 0 0 10px #3b82f6;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -166,15 +186,15 @@
 
     <!-- Header -->
     <header class="py-6 px-4 sm:px-6 lg:px-8 glass-effect sticky top-0 z-20">
-        <div class="container mx-auto flex justify-between items-center">
+        <div class="container mx-auto flex justify-between items-center flex-wrap gap-4">
             <div>
                 <h1 class="text-2xl md:text-3xl font-bold font-roboto-mono tracking-wider">
                     <span class="text-blue-400">&gt;</span> Project: <span class="text-white">CYPHER</span>
                 </h1>
                 <p class="text-sm text-gray-400">A Capture The Flag Challenge</p>
             </div>
-            <div class="flex items-start gap-8">
-                 <button id="rules-btn" title="View Rules" class="p-2 rounded-lg mt-8">
+            <div class="flex items-center gap-4">
+                 <button id="rules-btn" title="View Rules" class="p-2 rounded-lg">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400"><path d="M15.5 2H8.6c-.4 0-.8.2-1.1.5-.3.3-.5.7-.5 1.1V21c0 .4.2.8.5 1.1.3.3.7.5 1.1.5h7.8c.4 0 .8-.2 1.1-.5.3-.3.5-.7.5-1.1V5.5L15.5 2z"/><path d="M15 2v4h4"/><path d="M10 12h4"/><path d="M10 16h4"/><path d="M8 8h2"/></svg>
                 </button>
                 <div>
@@ -199,8 +219,27 @@
 
     <!-- Main Content -->
     <main class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <!-- Search and Filter Section -->
+        <div class="mb-8 p-4 glass-effect rounded-lg">
+            <div class="flex flex-col md:flex-row gap-4">
+                <div class="relative flex-grow">
+                    <input type="text" id="search-input" placeholder="Search challenges by name..." class="w-full pl-10 pr-4 py-2 rounded-md outline-none transition-all duration-200 input-field">
+                    <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+            </div>
+            <div id="filter-container" class="mt-4 flex flex-wrap gap-2">
+                <!-- Filter buttons will be injected here -->
+            </div>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="challenge-grid">
             <!-- Challenge cards will be injected here by JavaScript -->
+        </div>
+        <div id="no-results" class="hidden text-center py-16">
+            <h3 class="text-2xl font-bold text-gray-400">No Challenges Found</h3>
+            <p class="text-gray-500 mt-2">Try adjusting your search or filter criteria.</p>
         </div>
     </main>
 
@@ -321,73 +360,23 @@
         document.addEventListener('DOMContentLoaded', () => {
             const { jsPDF } = window.jspdf;
             
-            // --- BACKGROUND ANIMATION ---
-            const canvas = document.getElementById('background-animation');
-            if (canvas) {
-                const ctx = canvas.getContext('2d');
-
-                let width = canvas.width = window.innerWidth;
-                let height = canvas.height = window.innerHeight;
-
-                let columns = Math.floor(width / 20);
-                const characters = "アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン0123456789";
-                const charArray = characters.split('');
-                let drops = [];
-
-                for(let x = 0; x < columns; x++) {
-                    drops[x] = 1;
-                }
-
-                function drawAnimation() {
-                    ctx.fillStyle = 'rgba(10, 10, 10, 0.05)';
-                    ctx.fillRect(0, 0, width, height);
-                    
-                    ctx.fillStyle = '#00f';
-                    ctx.font = '15px monospace';
-
-                    for(let i = 0; i < drops.length; i++) {
-                        const text = charArray[Math.floor(Math.random() * charArray.length)];
-                        ctx.fillText(text, i * 20, drops[i] * 20);
-
-                        if(drops[i] * 20 > height && Math.random() > 0.975) {
-                            drops[i] = 0;
-                        }
-                        drops[i]++;
-                    }
-                }
-                
-                let animationInterval = setInterval(drawAnimation, 33);
-                
-                window.addEventListener('resize', () => {
-                    width = canvas.width = window.innerWidth;
-                    height = canvas.height = window.innerHeight;
-                    columns = Math.floor(width / 20);
-                    drops = [];
-                    for(let x = 0; x < columns; x++) {
-                        drops[x] = 1;
-                    }
-                    clearInterval(animationInterval);
-                    animationInterval = setInterval(drawAnimation, 33);
-                });
-            }
-
-            // --- CTF LOGIC ---
+            // --- CTF DATA ---
             const challenges = [
                 {
                     id: 'crypto-1',
                     title: 'Ancient Cipher',
                     category: 'Cryptography',
                     points: 100,
-                    description: 'A Roman general used this simple substitution cipher to protect his military secrets. The key is to shift everything by 13. The encrypted message is: "ouePGS{vagurjbeyfbsvg11112}"',
-                    flag: 'bhrCTF{THEQUICKBROWNFOXJUMPSOVERTHELAZYDOG}',
+                    description: 'A Roman general used this simple substitution cipher to protect his military secrets. The key is to shift everything by 13. The encrypted message is: "ouePGS{vagurjbeyqbsvg11112}"',
+                    flag: 'bhrCTF{intheworldofit11112}',
                     hint: 'This is a classic Caesar cipher variant. Each letter is shifted by 13 places. You can find online tools to solve ROT13.',
                     solved: false,
                     hintUsed: false
                 },
                 {
-                    id: 'basics-1',
+                    id: 'web-1',
                     title: 'View the Source',
-                    category: 'Basics',
+                    category: 'Web Exploitation',
                     points: 50,
                     description: 'Sometimes the easiest way to find something is just to look for it. Check the resources below.',
                     flag: 'bhrCTF{W3B_D3V_T00L5_R0CK}',
@@ -433,27 +422,57 @@
                     points: 150,
                     description: 'We intercepted an encoded message, but we\'re not sure what format it is. Can you decode it? The message is: YmhyQ1RGe2lfYW0gaGVyX2FuZF95b3UyMjMxMjMzfQ==',
                     flag: 'bhrCTF{i_am her_and_you2231233}',
-                    hint: 'This is a very common encoding on the web. A good cook knows how to handle this with the right tools. Maybe a CyberChef?',
+                    hint: 'This is a very common encoding on the web, often used to transmit binary data. It uses a 64-character alphabet. Maybe a CyberChef can cook this up?',
                     solved: false,
                     hintUsed: false
                 },
-                 {
-                    id: 'web-1',
+                {
+                    id: 'web-2',
                     title: 'Secret Directory',
                     category: 'Web Exploitation',
-                    points: 50,
-                    description: 'Web servers often have hidden pages or directories that aren\'t linked from the main site. Can you find the secret administrative area? The flag might be there.',
-                    flag: 'bhrCTF{H1DD3N_P4G3S_4R3_FUN}',
-                    hint: 'Common names for admin panels are /admin, /dashboard, or /secret. Try navigating to these paths directly in the URL.',
+                    points: 100,
+                    description: 'Web servers often have hidden pages or directories that aren\'t linked from the main site. The developers mentioned a `robots.txt` file. Maybe it holds a clue? The server is at the same location as the "View the Source" challenge.',
+                    flag: 'bhrCTF{R0B0TS_D0NT_K33P_S3CR3TS}',
+                    hint: 'Navigate to the `robots.txt` file on the target website (e.g., `https://example.com/robots.txt`). This file often lists directories that the site owner does not want web crawlers to index, which can sometimes reveal interesting locations.',
+                    solved: false,
+                    hintUsed: false
+                },
+                {
+                    id: 'pwn-1',
+                    title: 'Buffer Overflow Basics',
+                    category: 'Pwn',
+                    points: 250,
+                    description: 'A classic buffer overflow. We have a simple C program with a vulnerable function. Your goal is to overwrite the return address to call the `win` function. The binary is provided.',
+                    flag: 'bhrCTF{PWN3D_TH3_ST4CK}',
+                    hint: 'Use a debugger like GDB to analyze the stack. Find the offset between the start of your input buffer and the return address. Craft a payload that fills the buffer and overwrites the return address with the address of the `win` function.',
+                    resources: [
+                        { name: 'vulnerable_binary', url: './vulnerable_binary', download: true }
+                    ],
+                    solved: false,
+                    hintUsed: false
+                },
+                {
+                    id: 'osint-1',
+                    title: 'Find the Creator',
+                    category: 'OSINT',
+                    points: 75,
+                    description: 'The creator of this CTF platform left their username handle in the footer. Using this handle, can you find the city they are based in according to their Twitter profile?',
+                    flag: 'bhrCTF{Nagpur}',
+                    hint: 'The handle is @uttkarshbabar. Check their social media profiles linked in the footer, specifically Twitter, for location information.',
                     solved: false,
                     hintUsed: false
                 }
             ];
-            // --- END OF CONFIGURATION ---
+            // --- END OF DATA ---
 
+            // --- DOM ELEMENT SELECTORS ---
             const challengeGrid = document.getElementById('challenge-grid');
+            const noResultsEl = document.getElementById('no-results');
             const scoreEl = document.getElementById('score');
             const timerEl = document.getElementById('timer');
+            const searchInput = document.getElementById('search-input');
+            const filterContainer = document.getElementById('filter-container');
+            
             const modal = document.getElementById('challenge-modal');
             const modalContent = document.getElementById('modal-content');
             const closeModalBtn = document.getElementById('close-modal-btn');
@@ -463,9 +482,7 @@
             const modalResources = document.getElementById('modal-resources');
             const modalHintSection = document.getElementById('modal-hint-section');
             const shareScoreBtn = document.getElementById('share-score-btn');
-            const copyFeedbackEl = document.getElementById('copy-feedback');
 
-            // PDF Modal Elements
             const pdfInfoModal = document.getElementById('pdf-info-modal');
             const pdfModalContent = document.getElementById('pdf-modal-content');
             const closePdfModalBtn = document.getElementById('close-pdf-modal-btn');
@@ -474,17 +491,19 @@
             const linkedinUrlInput = document.getElementById('linkedin-url');
             const linkedinErrorEl = document.getElementById('linkedin-error');
             
-            // Rules Modal Elements
             const rulesModal = document.getElementById('rules-modal');
             const rulesModalContent = document.getElementById('rules-modal-content');
             const rulesBtn = document.getElementById('rules-btn');
             const closeRulesModalBtn = document.getElementById('close-rules-modal-btn');
             
+            // --- STATE MANAGEMENT ---
             let currentChallengeId = null;
             let timerInterval;
             let startTime;
             let elapsedTime = 0;
+            let activeCategory = 'All';
 
+            // --- TIMER FUNCTIONS ---
             function formatTime(seconds) {
                 const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
                 const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
@@ -504,6 +523,7 @@
                 clearInterval(timerInterval);
             }
 
+            // --- SCORE & RENDERING ---
             function updateTotalScore() {
                 const totalScore = challenges
                     .filter(c => c.solved)
@@ -514,9 +534,17 @@
                 scoreEl.textContent = totalScore;
             }
 
-            function renderChallenges() {
+            function renderChallenges(challengesToRender) {
                 challengeGrid.innerHTML = '';
-                challenges.forEach(challenge => {
+                if (challengesToRender.length === 0) {
+                    noResultsEl.classList.remove('hidden');
+                    challengeGrid.classList.add('hidden');
+                } else {
+                    noResultsEl.classList.add('hidden');
+                    challengeGrid.classList.remove('hidden');
+                }
+
+                challengesToRender.forEach(challenge => {
                     const card = document.createElement('div');
                     card.className = `challenge-card p-5 rounded-lg border-2 cursor-pointer ${challenge.solved ? 'solved-card' : 'unsolved-card'}`;
                     card.dataset.id = challenge.id;
@@ -530,12 +558,65 @@
                         <p class="mt-4 text-lg font-roboto-mono text-gray-300">Points: ${challenge.points}</p>
                         ${challenge.solved ? '<p class="mt-2 font-bold text-green-400">SOLVED</p>' : ''}
                     `;
-                    card.addEventListener('click', () => openModal(challenge.id));
+                    card.addEventListener('click', () => openChallengeModal(challenge.id));
                     challengeGrid.appendChild(card);
                 });
             }
 
-            function openModal(id) {
+            function renderFilters() {
+                const categories = ['All', ...new Set(challenges.map(c => c.category))];
+                filterContainer.innerHTML = '';
+                categories.forEach(category => {
+                    const button = document.createElement('button');
+                    button.textContent = category;
+                    button.className = `filter-btn px-4 py-1 rounded-md text-sm font-semibold ${activeCategory === category ? 'active' : ''}`;
+                    button.dataset.category = category;
+                    button.addEventListener('click', () => {
+                        activeCategory = category;
+                        updateChallengeDisplay();
+                        document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+                        button.classList.add('active');
+                    });
+                    filterContainer.appendChild(button);
+                });
+            }
+
+            function updateChallengeDisplay() {
+                const searchTerm = searchInput.value.toLowerCase();
+                let filteredChallenges = challenges;
+
+                if (activeCategory !== 'All') {
+                    filteredChallenges = filteredChallenges.filter(c => c.category === activeCategory);
+                }
+
+                if (searchTerm) {
+                    filteredChallenges = filteredChallenges.filter(c => 
+                        c.title.toLowerCase().includes(searchTerm) || 
+                        c.category.toLowerCase().includes(searchTerm)
+                    );
+                }
+                
+                renderChallenges(filteredChallenges);
+            }
+
+            // --- MODAL HANDLING ---
+            function openModal(modalElement, contentElement) {
+                modalElement.classList.remove('hidden');
+                setTimeout(() => {
+                    contentElement.classList.remove('scale-95', 'opacity-0');
+                    contentElement.classList.add('scale-100', 'opacity-100');
+                }, 10);
+            }
+
+            function closeModal(modalElement, contentElement) {
+                contentElement.classList.add('scale-95', 'opacity-0');
+                contentElement.classList.remove('scale-100', 'opacity-100');
+                setTimeout(() => {
+                    modalElement.classList.add('hidden');
+                }, 300);
+            }
+
+            function openChallengeModal(id) {
                 currentChallengeId = id;
                 const challenge = challenges.find(c => c.id === id);
                 if (!challenge) return;
@@ -602,21 +683,10 @@
                     submitFlagBtn.disabled = false;
                 }
 
-                modal.classList.remove('hidden');
-                setTimeout(() => {
-                    modalContent.classList.remove('scale-95', 'opacity-0');
-                    modalContent.classList.add('scale-100', 'opacity-100');
-                }, 10);
-            }
-
-            function closeModal(modalElement, contentElement) {
-                 contentElement.classList.add('scale-95', 'opacity-0');
-                 contentElement.classList.remove('scale-100', 'opacity-100');
-                 setTimeout(() => {
-                    modalElement.classList.add('hidden');
-                 }, 300);
+                openModal(modal, modalContent);
             }
             
+            // --- EVENT HANDLERS ---
             function handleSubmit() {
                 const challenge = challenges.find(c => c.id === currentChallengeId);
                 const submittedFlag = flagInput.value.trim();
@@ -628,7 +698,7 @@
                     flagInput.disabled = true;
                     submitFlagBtn.disabled = true;
                     updateTotalScore();
-                    renderChallenges();
+                    updateChallengeDisplay();
                     
                     const allSolved = challenges.every(c => c.solved);
                     if (allSolved) {
@@ -652,16 +722,16 @@
                 const pageHeight = doc.internal.pageSize.height;
                 let yPos = 0;
 
-                // --- PDF Header ---
+                // PDF Header
                 const header = () => {
                     doc.setFont('helvetica', 'bold');
                     doc.setFontSize(16);
-                    doc.setTextColor(59, 130, 246); // Blue color
+                    doc.setTextColor(59, 130, 246); // Blue
                     doc.text('> Project: CYPHER', 20, 20);
                     
                     doc.setFont('helvetica', 'normal');
                     doc.setFontSize(10);
-                    doc.setTextColor(156, 163, 175); // Gray color
+                    doc.setTextColor(156, 163, 175); // Gray
                     doc.text('CTF Completion Report', 20, 26);
 
                     if(userName) {
@@ -677,11 +747,11 @@
                         doc.textWithLink('LinkedIn Profile', 190, 26, { url: linkedinUrl, align: 'right' });
                     }
                     
-                    doc.setDrawColor(55, 65, 81); // Gray border color
+                    doc.setDrawColor(55, 65, 81); // Gray border
                     doc.line(20, 32, 190, 32);
                 };
 
-                // --- PDF Footer ---
+                // PDF Footer
                 const footer = (pageNum) => {
                     const pageStr = `Page ${pageNum}`;
                     doc.setFontSize(8);
@@ -694,10 +764,10 @@
                     doc.text('@uttkarshbabar', 105, pageHeight - 15, { align: 'center' });
                 };
 
-                // --- First Page ---
+                // First Page
                 header(1);
                 
-                // --- Score Section ---
+                // Score Section
                 doc.setFontSize(28);
                 doc.setFont('helvetica', 'bold');
                 doc.setTextColor(45, 45, 45);
@@ -706,7 +776,7 @@
                 doc.setTextColor(100, 100, 100);
                 doc.text('FINAL SCORE', 105, 62, { align: 'center' });
 
-                // --- Status Section ---
+                // Status Section
                 doc.setFontSize(14);
                 doc.setFont('helvetica', 'bold');
                 doc.setTextColor(45, 45, 45);
@@ -720,7 +790,7 @@
                 doc.text(`Time Taken: ${formatTime(elapsedTime)}`, 22, 100);
                 yPos = 115;
 
-                // --- Completed Challenges Table ---
+                // Completed Challenges Table
                 if (solvedChallenges.length > 0) {
                     doc.setFontSize(14);
                     doc.setFont('helvetica', 'bold');
@@ -730,7 +800,6 @@
                     doc.line(20, yPos, 190, yPos);
                     yPos += 10;
 
-                    // Table Header
                     doc.setFontSize(10);
                     doc.setFont('helvetica', 'bold');
                     doc.setTextColor(100, 100, 100);
@@ -742,11 +811,10 @@
                     doc.line(22, yPos, 188, yPos);
                     yPos += 8;
 
-                    // Table Rows
                     doc.setFont('helvetica', 'normal');
                     doc.setTextColor(45, 45, 45);
                     doc.setFontSize(10);
-                    solvedChallenges.forEach((c, index) => {
+                    solvedChallenges.forEach((c) => {
                         if (yPos > pageHeight - 30) {
                             footer(doc.internal.getNumberOfPages());
                             doc.addPage();
@@ -771,76 +839,35 @@
                     doc.text("No challenges completed yet. Keep trying!", 105, 120, null, null, "center");
                 }
                 
-                // --- Submission Instructions ---
-                yPos += 15;
-                if (yPos > pageHeight - 40) {
-                    footer(doc.internal.getNumberOfPages());
-                    doc.addPage();
-                    header(doc.internal.getNumberOfPages());
-                    yPos = 45;
-                }
-                doc.setFontSize(14);
-                doc.setFont('helvetica', 'bold');
-                doc.setTextColor(45, 45, 45);
-                doc.text("Submission Instructions", 20, yPos);
-                yPos += 3;
-                doc.setDrawColor(229, 231, 235);
-                doc.line(20, yPos, 190, yPos);
-                yPos += 10;
-
-                doc.setFont('helvetica', 'normal');
-                doc.setFontSize(10);
-                doc.setTextColor(100, 100, 100);
-                doc.text("Congratulations! Share this report on LinkedIn and tag the creator", 22, yPos);
-                yPos += 5;
-                doc.text("to showcase your skills.", 22, yPos);
-
-                // --- Creator Links ---
-                yPos += 15;
-                if (yPos > pageHeight - 40) {
-                    footer(doc.internal.getNumberOfPages());
-                    doc.addPage();
-                    header(doc.internal.getNumberOfPages());
-                    yPos = 45;
-                }
-                doc.setFontSize(14);
-                doc.setFont('helvetica', 'bold');
-                doc.setTextColor(45, 45, 45);
-                doc.text("Creator Information", 20, yPos);
-                yPos += 3;
-                doc.setDrawColor(229, 231, 235);
-                doc.line(20, yPos, 190, yPos);
-                yPos += 10;
-
-                doc.setFont('helvetica', 'normal');
-                doc.setFontSize(10);
-                doc.setTextColor(59, 130, 246);
-
-                const creatorLinks = [
-                    { title: 'Instagram', url: 'https://www.instagram.com/utkarsh_babar_?igsh=d2gxMHI0MHYxZmxh' },
-                    { title: 'LinkedIn', url: 'https://www.linkedin.com/in/utkarshbabar1?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app' },
-                    { title: 'Twitter', url: 'https://twitter.com/utkarshbabar' },
-                    { title: 'Portfolio/Website', url: 'https://utkarshbabar.github.io' }
-                ];
-
-                creatorLinks.forEach(link => {
-                    doc.textWithLink(link.title, 22, yPos, { url: link.url });
-                    yPos += 7;
-                });
-
-
                 footer(doc.internal.getNumberOfPages());
                 doc.output('dataurlnewwindow');
             }
 
-            shareScoreBtn.addEventListener('click', () => {
-                pdfInfoModal.classList.remove('hidden');
-                setTimeout(() => {
-                    pdfModalContent.classList.remove('scale-95', 'opacity-0');
-                    pdfModalContent.classList.add('scale-100', 'opacity-100');
-                }, 10);
+            // --- EVENT LISTENERS ---
+            searchInput.addEventListener('keyup', updateChallengeDisplay);
+            
+            closeModalBtn.addEventListener('click', () => closeModal(modal, modalContent));
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeModal(modal, modalContent);
             });
             
+            closePdfModalBtn.addEventListener('click', () => closeModal(pdfInfoModal, pdfModalContent));
+            pdfInfoModal.addEventListener('click', (e) => {
+                if (e.target === pdfInfoModal) closeModal(pdfInfoModal, pdfModalContent);
+            });
+
+            submitFlagBtn.addEventListener('click', handleSubmit);
+            flagInput.addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') handleSubmit();
+            });
+            
+            rulesBtn.addEventListener('click', () => openModal(rulesModal, rulesModalContent));
+            closeRulesModalBtn.addEventListener('click', () => closeModal(rulesModal, rulesModalContent));
+            rulesModal.addEventListener('click', (e) => {
+                if (e.target === rulesModal) closeModal(rulesModal, rulesModalContent);
+            });
+
+            shareScoreBtn.addEventListener('click', () => openModal(pdfInfoModal, pdfModalContent));
             generatePdfBtn.addEventListener('click', () => {
                 const userName = userNameInput.value.trim();
                 const linkedinUrl = linkedinUrlInput.value.trim();
@@ -858,48 +885,17 @@
                 closeModal(pdfInfoModal, pdfModalContent);
             });
 
-            closeModalBtn.addEventListener('click', () => closeModal(modal, modalContent));
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) closeModal(modal, modalContent);
-            });
-            
-            closePdfModalBtn.addEventListener('click', () => closeModal(pdfInfoModal, pdfModalContent));
-            pdfInfoModal.addEventListener('click', (e) => {
-                if (e.target === pdfInfoModal) closeModal(pdfInfoModal, pdfModalContent);
-            });
+            // --- INITIALIZATION ---
+            function init() {
+                renderFilters();
+                updateChallengeDisplay();
+                updateTotalScore();
+                startTimer();
+            }
 
-            submitFlagBtn.addEventListener('click', handleSubmit);
-            flagInput.addEventListener('keyup', (e) => {
-                if (e.key === 'Enter') {
-                    handleSubmit();
-                }
-            });
-            
-            rulesBtn.addEventListener('click', () => {
-                rulesModal.classList.remove('hidden');
-                setTimeout(() => {
-                    rulesModalContent.classList.remove('scale-95', 'opacity-0');
-                    rulesModalContent.classList.add('scale-100', 'opacity-100');
-                }, 10);
-            });
-
-            closeRulesModalBtn.addEventListener('click', () => closeModal(rulesModal, rulesModalContent));
-            rulesModal.addEventListener('click', (e) => {
-                if (e.target === rulesModal) closeModal(rulesModal, rulesModalContent);
-            });
-
-            // Initial render
-            renderChallenges();
-            updateTotalScore();
-            startTimer();
+            init();
         });
     </script>
-    <style>
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-            20%, 40%, 60%, 80% { transform: translateX(5px); }
-        }
-    </style>
 </body>
 </html>
+
